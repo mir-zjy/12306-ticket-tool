@@ -145,9 +145,9 @@ class TicketBookingApp:
         
         # 选座偏好
         ttk.Label(section_frame, text="选座偏好:").grid(row=3, column=0, sticky=tk.W, pady=5)
-        self.seat_position_var = tk.StringVar(value="first")
+        self.seat_position_var = tk.StringVar(value="第一个可用座位")
         position_combo = ttk.Combobox(section_frame, textvariable=self.seat_position_var, 
-                                     values=["first", "window", "aisle"], 
+                                     values=["第一个可用座位", "靠窗座位", "靠过道座位"], 
                                      width=22, state="readonly")
         position_combo.grid(row=3, column=1, sticky=tk.W, padx=5)
         
@@ -276,13 +276,20 @@ class TicketBookingApp:
     
     def get_params(self):
         """获取当前界面参数"""
+        # 选座偏好中文转英文映射
+        seat_position_map = {
+            "第一个可用座位": "first",
+            "靠窗座位": "window",
+            "靠过道座位": "aisle"
+        }
+        
         params = {
             'from_station': self.from_station_var.get().strip(),
             'to_station': self.to_station_var.get().strip(),
             'travel_date': self.travel_date_var.get().strip(),
             'ticket_type': self.ticket_type_var.get(),
             'seat_category': self.seat_category_var.get(),
-            'seat_position_preference': self.seat_position_var.get(),
+            'seat_position_preference': seat_position_map.get(self.seat_position_var.get(), 'first'),
             'booking_start_time': self.booking_start_time_var.get().strip(),
         }
         
@@ -410,12 +417,23 @@ class TicketBookingApp:
             with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
                 params = json.load(f)
             
+            # 选座偏好英文转中文映射
+            seat_position_reverse_map = {
+                "first": "第一个可用座位",
+                "window": "靠窗座位",
+                "aisle": "靠过道座位"
+            }
+            
             self.from_station_var.set(params.get('from_station', ''))
             self.to_station_var.set(params.get('to_station', ''))
             self.travel_date_var.set(params.get('travel_date', ''))
             self.ticket_type_var.set(params.get('ticket_type', 'adult'))
             self.seat_category_var.set(params.get('seat_category', '二等座'))
-            self.seat_position_var.set(params.get('seat_position_preference', 'first'))
+            
+            # 转换选座偏好
+            seat_pref = params.get('seat_position_preference', 'first')
+            self.seat_position_var.set(seat_position_reverse_map.get(seat_pref, '第一个可用座位'))
+            
             self.booking_start_time_var.set(params.get('booking_start_time', ''))
             
             # 加载策略相关参数
